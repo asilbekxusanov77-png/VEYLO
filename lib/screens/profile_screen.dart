@@ -1,9 +1,371 @@
+
+
+// import 'dart:io';
+// import 'package:flutter/foundation.dart';
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import '../providers/auth_provider.dart';
+// import '../screens/attendance_screen.dart';
+// import '../screens/text_to_speech_screen.dart';
+// import '../screens/sos_screen.dart';
+// import '../screens/tracking_screen.dart';
+// import '../screens/student_tracking_screen.dart';
+
+// class ProfileScreen extends StatefulWidget {
+//   const ProfileScreen({super.key});
+
+//   @override
+//   State<ProfileScreen> createState() => _ProfileScreenState();
+// }
+
+// class _ProfileScreenState extends State<ProfileScreen> {
+//   File? _imageFile;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _loadSavedImage();
+//   }
+
+//   // Saqlangan profil rasmini yuklab olish
+//   Future<void> _loadSavedImage() async {
+//     try {
+//       final prefs = await SharedPreferences.getInstance();
+//       final String? imagePath = prefs.getString('profile_image_path');
+//       if (imagePath != null && File(imagePath).existsSync()) {
+//         setState(() {
+//           _imageFile = File(imagePath);
+//         });
+//       }
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print("Rasmni yuklashda xatolik: $e");
+//       }
+//     }
+//   }
+
+//   // Galereyadan rasm tanlab saqlash
+//   Future<void> _pickAndSaveImage() async {
+//     try {
+//       final ImagePicker picker = ImagePicker();
+//       final XFile? pickedFile = await picker.pickImage(
+//         source: ImageSource.gallery,
+//         imageQuality: 80, // Rasm sifatini ozgina kamaytirish xotirani tejaydi
+//       );
+
+//       if (pickedFile != null) {
+//         final File file = File(pickedFile.path);
+//         final SharedPreferences prefs = await SharedPreferences.getInstance();
+//         await prefs.setString('profile_image_path', file.path);
+
+//         setState(() {
+//           _imageFile = file;
+//         });
+//       }
+//     } catch (e) {
+//       if (kDebugMode) {
+//         print("Rasmni tanlashda xatolik: $e");
+//       }
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final authProvider = Provider.of<AuthProvider>(context);
+//     final user = authProvider.currentUser;
+
+//     return Scaffold(
+//       backgroundColor: const Color(0xFF090D16),
+//       appBar: AppBar(
+//         backgroundColor: Colors.transparent,
+//         elevation: 0,
+//         title: const Text('Profil', style: TextStyle(color: Colors.white)),
+//         // Sozlamalar tugmasi olib tashlandi (Faqat pastdagi tab orqali kiriladi)
+//       ),
+//       body: SingleChildScrollView(
+//         padding: const EdgeInsets.all(16),
+//         child: Column(
+//           children: [
+//             // Profile Header with Image Picker
+//             Center(
+//               child: Column(
+//                 children: [
+//                   Stack(
+//                     children: [
+//                       CircleAvatar(
+//                         radius: 45,
+//                         backgroundColor: const Color(0xFF5B61F6),
+//                         backgroundImage: _imageFile != null
+//                             ? FileImage(_imageFile!)
+//                             : null,
+//                         child: _imageFile == null
+//                             ? Text(
+//                                 user?.displayName?.isNotEmpty == true
+//                                     ? user!.displayName![0].toUpperCase()
+//                                     : (user?.email?.isNotEmpty == true
+//                                           ? user!.email![0].toUpperCase()
+//                                           : 'U'),
+//                                 style: const TextStyle(
+//                                   color: Colors.white,
+//                                   fontSize: 32,
+//                                   fontWeight: FontWeight.bold,
+//                                 ),
+//                               )
+//                             : null,
+//                       ),
+//                       Positioned(
+//                         bottom: 0,
+//                         right: 0,
+//                         child: InkWell(
+//                           onTap: _pickAndSaveImage,
+//                           borderRadius: BorderRadius.circular(20),
+//                           child: Container(
+//                             padding: const EdgeInsets.all(6),
+//                             decoration: const BoxDecoration(
+//                               color: Colors.cyanAccent,
+//                               shape: BoxShape.circle,
+//                             ),
+//                             child: const Icon(
+//                               Icons.camera_alt,
+//                               color: Color(0xFF090D16),
+//                               size: 18,
+//                             ),
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                   const SizedBox(height: 12),
+//                   Text(
+//                     user?.displayName ?? 'Foydalanuvchi',
+//                     style: const TextStyle(
+//                       color: Colors.white,
+//                       fontSize: 20,
+//                       fontWeight: FontWeight.bold,
+//                     ),
+//                   ),
+//                   const SizedBox(height: 4),
+//                   Text(
+//                     user?.email ?? 'Email ko\'rsatilmagan',
+//                     style: const TextStyle(color: Colors.grey, fontSize: 14),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//             const SizedBox(height: 32),
+
+//             // Additional Features Section
+//             const Align(
+//               alignment: Alignment.centerLeft,
+//               child: Text(
+//                 'Qo\'shimcha funksiyalar',
+//                 style: TextStyle(
+//                   color: Colors.white,
+//                   fontSize: 20,
+//                   fontWeight: FontWeight.bold,
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+
+//             // Feature Cards Grid
+//             GridView.count(
+//               crossAxisCount: 2,
+//               shrinkWrap: true,
+//               physics: const NeverScrollableScrollPhysics(),
+//               mainAxisSpacing: 12,
+//               crossAxisSpacing: 12,
+//               childAspectRatio: 0.85,
+//               children: [
+//                 _buildFeatureCard(
+//                   context,
+//                   Icons.checklist,
+//                   'Davomat',
+//                   'O\'quvchilar dars qatnashish holatini qayd qiling.',
+//                   () => Navigator.push(
+//                     context,
+//                     MaterialPageRoute(
+//                       builder: (context) => const AttendanceScreen(),
+//                     ),
+//                   ),
+//                 ),
+//                 _buildFeatureCard(
+//                   context,
+//                   Icons.volume_up,
+//                   'Matnni Ovozga',
+//                   'Kiritilgan matnni ovozga aylantirish.',
+//                   () => Navigator.push(
+//                     context,
+//                     MaterialPageRoute(
+//                       builder: (context) => const TextToSpeechScreen(),
+//                     ),
+//                   ),
+//                 ),
+//                 _buildFeatureCard(
+//                   context,
+//                   Icons.warning_amber_rounded,
+//                   'S.O.S',
+//                   'Favqulodda xabar yuborish va yordam so\'rash.',
+//                   () => Navigator.push(
+//                     context,
+//                     MaterialPageRoute(builder: (context) => const SosScreen()),
+//                   ),
+//                 ),
+//                 _buildFeatureCard(
+//                   context,
+//                   Icons.location_on,
+//                   'Kuzatuv',
+//                   'Real vaqtda joylashuvni kuzatish.',
+//                   () {
+//                     final role = context.read<AuthProvider>().role;
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                         builder: (context) => role == 'teacher'
+//                             ? const TrackingScreen()
+//                             : const StudentTrackingScreen(),
+//                       ),
+//                     );
+//                   },
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildFeatureCard(
+//     BuildContext context,
+//     IconData icon,
+//     String title,
+//     String description,
+//     VoidCallback onTap,
+//   ) {
+//     return InkWell(
+//       onTap: onTap,
+//       borderRadius: BorderRadius.circular(16),
+//       child: Container(
+//         padding: const EdgeInsets.all(14),
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(16),
+//           gradient: const LinearGradient(
+//             colors: [Color(0xFF131B2E), Color(0xFF1A2332)],
+//             begin: Alignment.topLeft,
+//             end: Alignment.bottomRight,
+//           ),
+//           border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.15)),
+//         ),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Container(
+//               padding: const EdgeInsets.all(10),
+//               decoration: BoxDecoration(
+//                 color: Colors.cyanAccent.withValues(alpha: 0.2),
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
+//               child: Icon(icon, color: Colors.cyanAccent, size: 24),
+//             ),
+//             const SizedBox(height: 12),
+//             Text(
+//               title,
+//               style: const TextStyle(
+//                 color: Colors.white,
+//                 fontSize: 15,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//             const SizedBox(height: 4),
+//             Text(
+//               description,
+//               style: const TextStyle(color: Colors.grey, fontSize: 11),
+//               maxLines: 2,
+//               overflow: TextOverflow.ellipsis,
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
+
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart'; // Yo'lni loyihangizga moslang
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/auth_provider.dart';
+import '../screens/attendance_screen.dart';
+import '../screens/text_to_speech_screen.dart';
+import '../screens/sos_screen.dart';
+import '../screens/tracking_screen.dart';
+import '../screens/student_tracking_screen.dart';
+// Agar ilovalarni bloklash uchun alohida ekraningiz bo'lsa import qilasiz:
+// import '../screens/app_blocker_screen.dart'; 
+import '../screens/app_blocker_screen.dart'; // Agar AppBlockerScreen mavjud bo'lsa import qilinadi
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  File? _imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedImage();
+  }
+
+  Future<void> _loadSavedImage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? imagePath = prefs.getString('profile_image_path');
+      if (imagePath != null && File(imagePath).existsSync()) {
+        setState(() {
+          _imageFile = File(imagePath);
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Rasmni yuklashda xatolik: $e");
+      }
+    }
+  }
+
+  Future<void> _pickAndSaveImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('profile_image_path', file.path);
+
+        setState(() {
+          _imageFile = file;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Rasmni tanlashda xatolik: $e");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,21 +386,48 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 45,
-                    backgroundColor: const Color(0xFF5B61F6),
-                    child: Text(
-                      user?.displayName?.isNotEmpty == true
-                          ? user!.displayName![0].toUpperCase()
-                          : (user?.email?.isNotEmpty == true
-                              ? user!.email![0].toUpperCase()
-                              : 'U'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 45,
+                        backgroundColor: const Color(0xFF5B61F6),
+                        backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
+                        child: _imageFile == null
+                            ? Text(
+                                user?.displayName?.isNotEmpty == true
+                                    ? user!.displayName![0].toUpperCase()
+                                    : (user?.email?.isNotEmpty == true
+                                        ? user!.email![0].toUpperCase()
+                                        : 'U'),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
                       ),
-                    ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: InkWell(
+                          onTap: _pickAndSaveImage,
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.cyanAccent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Color(0xFF090D16),
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -59,146 +448,154 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Akkauntni Almashtirish tugmasi
-            _buildProfileOption(
-              Icons.switch_account,
-              'Akkauntni almashtirish',
-              onTap: () => _showSwitchAccountDialog(context, authProvider),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Qo\'shimcha funksiyalar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-            _buildProfileOption(Icons.settings, 'Sozlamalar'),
-            _buildProfileOption(Icons.notifications, 'Bildirishnomalar'),
-            _buildProfileOption(Icons.security, 'Xavfsizlik'),
-            _buildProfileOption(
-              Icons.help_outline,
-              'Yordam va qo\'llab-quvvatlash',
-            ),
+            const SizedBox(height: 16),
 
-            // Chiqish tugmasi
-            _buildProfileOption(
-              Icons.logout,
-              'Chiqish',
-              isRed: true,
-              onTap: () => _showSignOutDialog(context, authProvider),
+            // Feature Cards Grid (Ilovalar bloklovchisi qo'shildi)
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+              children: [
+                // --- ILOVALARNI BLOKLOVCHI KARTOGKASI ---
+                _buildFeatureCard(
+                  context,
+                  Icons.block,
+                  'Ilova Bloklovchi',
+                  'Chalg\'ituvchi ilovalarni vaqtinchalik bloklash.',
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AppBlockerScreen()),
+                    );
+                    // Agar maxsus AppBlockerScreen bo'lsa shu yerga yozasiz, 
+                    // yoki dialog / boshqa sahifaga o'tish:
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Ilova bloklovchi ochilmoqda...")),
+                    );
+                  },
+                ),
+                _buildFeatureCard(
+                  context,
+                  Icons.checklist,
+                  'Davomat',
+                  'O\'quvchilar dars qatnashish holatini qayd qiling.',
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AttendanceScreen()),
+                  ),
+                ),
+                _buildFeatureCard(
+                  context,
+                  Icons.volume_up,
+                  'Matnni Ovozga',
+                  'Kiritilgan matnni ovozga aylantirish.',
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TextToSpeechScreen()),
+                  ),
+                ),
+                _buildFeatureCard(
+                  context,
+                  Icons.warning_amber_rounded,
+                  'S.O.S',
+                  'Favqulodda xabar yuborish va yordam so\'rash.',
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SosScreen()),
+                  ),
+                ),
+                _buildFeatureCard(
+                  context,
+                  Icons.location_on,
+                  'Kuzatuv',
+                  'Real vaqtda joylashuvni kuzatish.',
+                  () {
+                    final role = context.read<AuthProvider>().role;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => role == 'teacher'
+                            ? const TrackingScreen()
+                            : const StudentTrackingScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-Widget _buildProfileOption(
-  IconData icon,
-  String title, {
-  bool isRed = false,
-  VoidCallback? onTap,
-}) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Material(
-      color: const Color(0xFF131B2E),
-      borderRadius: BorderRadius.circular(16),
-      clipBehavior: Clip.antiAlias, // InkSplash (bosish effekti) ko'rinishi uchun
-      child: ListTile(
-        leading: Icon(icon, color: isRed ? Colors.redAccent : Colors.white),
-        title: Text(
-          title,
-          style: TextStyle(color: isRed ? Colors.redAccent : Colors.white),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: onTap,
-      ),
-    ),
-  );
-}
 
-  // Akkauntni almashtirish dialogi
-  void _showSwitchAccountDialog(
+  Widget _buildFeatureCard(
     BuildContext context,
-    AuthProvider authProvider,
+    IconData icon,
+    String title,
+    String description,
+    VoidCallback onTap,
   ) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF131B2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Akkauntni almashtirish',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.g_mobiledata,
-                    color: Colors.redAccent, size: 32),
-                title: const Text('Google orqali kirish',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () async {
-                  Navigator.pop(context);
-                  try {
-                    await authProvider.switchGoogleAccount();
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Xatolik: $e")),
-                      );
-                    }
-                  }
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.email, color: Color(0xFF5B61F6)),
-                title: const Text('Boshqa Email bilan kirish',
-                    style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/login');
-                },
-              ),
-            ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF131B2E), Color(0xFF1A2332)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        );
-      },
-    );
-  }
-
-  // Chiqishni tasdiqlash dialogi
-  void _showSignOutDialog(BuildContext context, AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF131B2E),
-        title: const Text('Tizimdan chiqish',
-            style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Haqiqatan ham akkauntdan chiqmoqchimisiz?',
-          style: TextStyle(color: Colors.grey),
+          border: Border.all(
+            color: Colors.cyanAccent.withValues(alpha: 0.15),
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Yo\'q', style: TextStyle(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await authProvider.signOut();
-              if (context.mounted) {
-                Navigator.pushReplacementNamed(context, '/login');
-              }
-            },
-            child: const Text('Ha, chiqish',
-                style: TextStyle(color: Colors.redAccent)),
-          ),
-        ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.cyanAccent.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.cyanAccent, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -177,7 +177,7 @@ class ScheduleProvider with ChangeNotifier {
     }
   }
 
-  Future<void> addTask(String title, String time) async {
+Future<void> addTask(String title, String time) async {
     if (title.trim().isEmpty) return;
 
     final user = _auth.currentUser;
@@ -207,95 +207,112 @@ class ScheduleProvider with ChangeNotifier {
       notifyListeners();
     }
 
-    // --- Notification ulash qismi ---
+    // --- Bildirishnoma va Signalni rejalashtirish ---
     DateTime? scheduledDate = parseScheduleTime(taskTime);
     if (scheduledDate != null) {
-      await NotificationService().scheduleNotification(
-        id: notificationId,
-        title: 'Dars vaqti bo\'ldi! 📚',
-        body: title,
-        scheduledDate: scheduledDate,
-      );
+      try {
+        await NotificationService().scheduleNotification(
+          id: notificationId,
+          title: 'Eslatma va Signal! ⏰',
+          body: title,
+          scheduledDate: scheduledDate,
+        );
+      } catch (e) {
+        debugPrint("Signal o'rnatishda xatolik: $e");
+      }
     }
   }
 
   // --- AI INTEGRATSIYA METODI ---
 
-  Future<bool> addTasksFromAi(String userPrompt, String apiKey) async {
-    if (userPrompt.trim().isEmpty) return false;
+Future<bool> addTasksFromAi(String userPrompt, String apiKey) async {
+    if (apiKey.isEmpty) {
+      debugPrint("XATOLIK: OpenRouter API kaliti kiritilmagan!");
+      return false;
+    }
 
     _isLoadingAi = true;
     notifyListeners();
 
-    try {
-      final url = Uri.parse('https://openrouter.ai/api/v1/chat/completions');
+    final url = Uri.parse('https://openrouter.ai/api/v1/chat/completions');
 
-      final prompt = '''
-Siz rejalashtiruvchi yordamchisiz. Foydalanuvchiga hech qanday savol bermang va qo'shimcha tushuntirish matni yoza ko'rmang. 
-
+    final prompt = '''
+Siz kunlik reja tuzuvchi yordamchisiz.
 Foydalanuvchi so'rovi: "$userPrompt"
 
-Sizning yagona vazifangiz: Shu so'rovdan kelib chiqib, bir kunlik reja/jadval tuzing va uni FAQAT JSON massivi shaklida qaytaring. 
+DIQQAT: Faqat va faqat quyidagi JSON formatida javob bering, hech qanday ortiqcha matn, kirish yoki markdown (masalan ```json) YOZMANX.
 
-Format strictly JSON:
 [
-  {"title": "Ertalabki mashqlar", "time": "08:00 - 09:00"},
-  {"title": "Dars qilish", "time": "10:00 - 12:00"}
+  {"title": "Ertalabki badantarbiya", "time": "07:00 - 07:30"},
+  {"title": "Nonushta", "time": "07:30 - 08:00"}
 ]
+Javobingiz faqatgina yuqoridagi formatda bo'lishi kerak.
 ''';
 
+    try {
       final response = await http.post(
         url,
         headers: {
+          'Authorization': 'Bearer $apiKey',
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey', // OpenRouter key: sk-or-v1-...
+          'HTTP-Referer': '[https://veylo.uz](https://veylo.uz)',
+          'X-Title': 'Veylo App',
         },
         body: jsonEncode({
-          "model": "google/gemini-flash-1.5",
-          "messages": [
-            {"role": "user", "content": prompt}
+          'model': 'google/gemini-2.0-flash-001', // OpenRouter uchun to'g'ri model nomi
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
           ],
-          "response_format": {"type": "json_object"}
+          'temperature': 0.7,
         }),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final String rawText = data['choices'][0]['message']['content'];
-        
-        final dynamic parsedJson = jsonDecode(rawText);
-        List<dynamic> taskList = [];
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final String? content = data['choices']?[0]?['message']?['content'];
 
-        if (parsedJson is List) {
-          taskList = parsedJson;
-        } else if (parsedJson is Map && parsedJson.containsKey('tasks')) {
-          taskList = parsedJson['tasks'];
-        } else if (parsedJson is Map) {
-          taskList = parsedJson.values.firstWhere((e) => e is List, orElse: () => []);
-        }
+        if (content != null && content.isNotEmpty) {
+          // JSON atrofidagi markdown belgilarini tozalash
+          String cleanJson = content
+              .replaceAll('```json', '')
+              .replaceAll('```', '')
+              .trim();
 
-        for (var item in taskList) {
-          final title = item['title']?.toString() ?? '';
-          final time = item['time']?.toString() ?? 'Kechroq';
-          if (title.isNotEmpty) {
-            await addTask(title, time);
+          final List<dynamic> decodedList = jsonDecode(cleanJson);
+
+          for (var item in decodedList) {
+            String title = item['title']?.toString() ?? '';
+            String time = item['time']?.toString() ?? '';
+            
+            // AI qaytargan har bir vazifani ro'yxatga qo'shish
+            // (Bu yerga o'zingizning vazifa qo'shuvchi funksiyangizni yozing)
+            _addTaskToSchedule(title, time);
           }
+   
+          _isLoadingAi = false;
+          notifyListeners();
+          return true; // Reja muvaffaqiyatli tuzildi
         }
-
-        _isLoadingAi = false;
-        notifyListeners();
-        return true;
       } else {
-        debugPrint("OpenRouter API xatosi: ${response.statusCode} - ${response.body}");
+        debugPrint('OpenRouter xato berdi (Status ${response.statusCode}): ${response.body}');
       }
     } catch (e) {
-      debugPrint("AI Reja yaratishda xatolik: $e");
+      debugPrint('AI reja tuzishda kutilmagan xatolik: $e');
     }
 
     _isLoadingAi = false;
     notifyListeners();
-    return false;
+    return false; // Xatolik yuz berdi
   }
+  void _addTaskToSchedule(String title, String time) {
+    // Masalan: _tasks.add(Task(title: title, time: time));
+    // O'zingizning ScheduleProvider ichidagi vazifa qo'shish kodingizni kiriting
+    addTask(title, time);
+  }
+
 
   Future<void> deleteTask(String id) async {
     final user = _auth.currentUser;

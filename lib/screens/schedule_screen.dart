@@ -12,16 +12,16 @@ class ScheduleScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF090D16),
       appBar: AppBar(
         actions: [
-    IconButton(
-      icon: const Icon(Icons.alarm, color: Colors.cyan),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AlarmSettingScreen()),
-        );
-      },
-    ),
-  ],
+          IconButton(
+            icon: const Icon(Icons.alarm, color: Colors.cyan),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AlarmSettingScreen()),
+              );
+            },
+          ),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text('Kun tartibi', style: TextStyle(color: Colors.white)),
@@ -119,53 +119,119 @@ class ScheduleScreen extends StatelessWidget {
 
   void _showAddTaskDialog(BuildContext context) {
     final titleController = TextEditingController();
-    final timeController = TextEditingController();
+    TimeOfDay? startTime;
+    TimeOfDay? endTime;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF131B2E),
-        title: const Text('Yangi reja qo\'shish', style: TextStyle(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Vazifa nomi',
-                hintStyle: TextStyle(color: Colors.grey),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          backgroundColor: const Color(0xFF131B2E),
+          title: const Text('Yangi reja qo\'shish', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Vazifa nomi',
+                  hintStyle: TextStyle(color: Colors.grey),
+                ),
               ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.cyanAccent.withValues(alpha: 0.5)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.access_time, color: Colors.cyanAccent, size: 18),
+                      label: Text(
+                        startTime == null
+                            ? 'Boshlanish'
+                            : '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setStateDialog(() {
+                            startTime = picked;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text('-', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  ),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.cyanAccent.withValues(alpha: 0.5)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.access_time, color: Colors.cyanAccent, size: 18),
+                      label: Text(
+                        endTime == null
+                            ? 'Tugash'
+                            : '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                      onPressed: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: startTime ?? TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setStateDialog(() {
+                            endTime = picked;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Bekor qilish'),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: timeController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Vaqti (masalan, 15:00 - 16:00)',
-                hintStyle: TextStyle(color: Colors.grey),
-              ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.trim().isNotEmpty && startTime != null && endTime != null) {
+                  final startStr = '${startTime!.hour.toString().padLeft(2, '0')}:${startTime!.minute.toString().padLeft(2, '0')}';
+                  final endStr = '${endTime!.hour.toString().padLeft(2, '0')}:${endTime!.minute.toString().padLeft(2, '0')}';
+                  final timeFormatted = '$startStr - $endStr';
+
+                  context.read<ScheduleProvider>().addTask(
+                        titleController.text.trim(),
+                        timeFormatted,
+                      );
+                  Navigator.pop(dialogContext);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Iltimos, vazifa nomi va vaqtlarni to\'liq tanlang!'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Saqlash'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Bekor qilish'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.trim().isNotEmpty) {
-                context.read<ScheduleProvider>().addTask(
-                      titleController.text.trim(),
-                      timeController.text.trim(),
-                    );
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('Saqlash'),
-          ),
-        ],
       ),
     );
   }

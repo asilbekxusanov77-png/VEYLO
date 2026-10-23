@@ -1,54 +1,78 @@
 import 'dart:convert';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 class AiScheduleService {
-  final String apiKey;
+  final String apiKey; 
 
   AiScheduleService({required this.apiKey});
 
   Future<List<Map<String, String>>> generateSchedule(String userPrompt) async {
-    final model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: apiKey,
-      generationConfig: GenerationConfig(
-        responseMimeType: 'application/json',
-      ),
-    );
+    final url = Uri.parse('https://openrouter.ai/api/v1/chat/completions');
 
     final prompt = '''
-Siz aqlli rejalashtiruvchi yordamchisiz. Foydalanuvchi quyidagi matnda nimani rejalashtirmoqchi ekanligini aytdi:
-"$userPrompt"
+Siz kunlik reja tuzuvchi yordamchisiz.
+Foydalanuvchi so'rovi: "$userPrompt"
 
-Vazifangiz: Foydalanuvchi so'rovini tahlil qilib, darslar yoki vazifalar ro'yxatini JSON massiv holatida qaytarish.
-Har bir obyekt quyidagi kalitlarga ega bo'lishi SHART:
-- "title": Vazifa yoki dars nomi.
-- "time": Bajarilish vaqti (Masalan: "09:00 - 10:00" yoki "Bugun kechki payt").
+DIQQAT: Faqat va faqat quyidagi JSON formatida javob bering, hech qanday ortiqcha matn, kirish yoki markdown (masalan ```json) YOZMANX.
 
-Faqat va faqat JSON massivini qaytaring. Boshqa matn yoki izoh yoza ko'rmang.
-Misol format:
 [
-  {"title": "Matematika darsi", "time": "09:00 - 10:00"},
-  {"title": "Ingliz tili so'zlarini yodlash", "time": "11:00 - 12:00"}
+  {"title": "Ertalabki badantarbbiya", "time": "07:00 - 07:30"},
+  {"title": "Nonushta", "time": "07:30 - 08:00"}
 ]
+Javobingiz faqatgina yuqoridagi formatda bo'lishi kerak.
 ''';
 
     try {
-      final response = await model.generateContent([Content.text(prompt)]);
-      final String? responseText = response.text;
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+          // Ixtiyoriy: OpenRouter uchun ilova nomi va vebsayt sarlavhasi
+          'HTTP-Referer': '[https://veylo.uz](https://veylo.uz)', 
+          'X-Title': 'Veylo App',
+        },
+        body: jsonEncode({
+          'model': 'google/gemini-1.5-flash', // OpenRouter model formati
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.7,
+        }),
+      );
 
-      if (responseText != null && responseText.isNotEmpty) {
-        final List<dynamic> decodedList = jsonDecode(responseText);
-        return decodedList
-            .map((item) => {
-                  'title': item['title']?.toString() ?? '',
-                  'time': item['time']?.toString() ?? '',
-                })
-            .toList();
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final String? content = data['choices']?[0]?['message']?['content'];
+
+        if (content != null && content.isNotEmpty) {
+          // Markdown belgilarini tozalash
+          String cleanJson = content
+              .replaceAll('```json', '')
+              .replaceAll('```', '')
+              .trim();
+
+          final List<dynamic> decodedList = jsonDecode(cleanJson);
+
+          return decodedList.map((item) {
+            return {
+              'title': item['title']?.toString() ?? '',
+              'time': item['time']?.toString() ?? '',
+            };
+          }).toList();
+        }
+      } else {
+        debugPrint('OpenRouter xatosi status kodi: ${response.statusCode}');
+        debugPrint('Xato matni: ${response.body}');
       }
     } catch (e) {
-      debugPrint('AI reja tuzishda xatolik: $e');
+      debugPrint('AI reja tuzishda kutilmagan xatolik: $e');
     }
+
     return [];
   }
 }

@@ -13,7 +13,10 @@ class SosScreen extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF101B35),
-          title: const Text('Raqam qo\'shish', style: TextStyle(color: Colors.white)),
+          title: const Text(
+            'Raqam qo\'shish',
+            style: TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: phoneController,
             keyboardType: TextInputType.phone,
@@ -21,24 +24,36 @@ class SosScreen extends StatelessWidget {
             decoration: const InputDecoration(
               hintText: '+998901234567',
               hintStyle: TextStyle(color: Colors.grey),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.cyanAccent)),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.cyanAccent),
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Bekor qilish', style: TextStyle(color: Colors.grey)),
+              child: const Text(
+                'Bekor qilish',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.cyanAccent,
+              ),
               onPressed: () {
                 if (phoneController.text.trim().isNotEmpty) {
-                  Provider.of<SosProvider>(context, listen: false)
-                      .addNumber(phoneController.text.trim());
+                  Provider.of<SosProvider>(
+                    context,
+                    listen: false,
+                  ).addNumber(phoneController.text.trim());
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Qo\'shish', style: TextStyle(color: Colors.black)),
+              child: const Text(
+                'Qo\'shish',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ],
         );
@@ -54,7 +69,22 @@ class SosScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF090D16),
       appBar: AppBar(
         backgroundColor: const Color(0xFF101B35),
-        title: const Text('S.O.S Favqulodda Xabar', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'S.O.S Favqulodda Xabar',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color(0xFF090D16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.cyanAccent),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -62,7 +92,9 @@ class SosScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             GestureDetector(
-              onTap: sosProvider.isSending ? null : () => sosProvider.triggerSos(context),
+              onTap: sosProvider.isSending
+                  ? null
+                  : () => sosProvider.triggerSos(context),
               child: Container(
                 width: 150,
                 height: 150,
@@ -74,13 +106,20 @@ class SosScreen extends StatelessWidget {
                       color: Colors.redAccent.withValues(alpha: 0.4),
                       blurRadius: 20,
                       spreadRadius: 5,
-                    )
+                    ),
                   ],
                 ),
                 child: Center(
                   child: sosProvider.isSending
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('S.O.S', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                      : const Text(
+                          'S.O.S',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -90,7 +129,10 @@ class SosScreen extends StatelessWidget {
               children: [
                 const Text(
                   'Biriktirilgan raqamlar:',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_call, color: Colors.cyanAccent),
@@ -101,7 +143,12 @@ class SosScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Expanded(
               child: sosProvider.numbers.isEmpty
-                  ? const Center(child: Text('Raqamlar mavjud emas', style: TextStyle(color: Colors.grey)))
+                  ? const Center(
+                      child: Text(
+                        'Raqamlar mavjud emas',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: sosProvider.numbers.length,
                       itemBuilder: (context, index) {
@@ -112,10 +159,19 @@ class SosScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
-                            leading: const Icon(Icons.phone, color: Colors.cyanAccent),
-                            title: Text(sosProvider.numbers[index], style: const TextStyle(color: Colors.white)),
+                            leading: const Icon(
+                              Icons.phone,
+                              color: Colors.cyanAccent,
+                            ),
+                            title: Text(
+                              sosProvider.numbers[index],
+                              style: const TextStyle(color: Colors.white),
+                            ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.redAccent,
+                              ),
                               onPressed: () => sosProvider.removeNumber(index),
                             ),
                           ),

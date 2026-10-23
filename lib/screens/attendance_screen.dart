@@ -37,7 +37,10 @@ class AttendanceScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Bekor qilish', style: TextStyle(color: Colors.grey)),
+              child: const Text(
+                'Bekor qilish',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -45,12 +48,17 @@ class AttendanceScreen extends StatelessWidget {
               ),
               onPressed: () {
                 if (nameController.text.trim().isNotEmpty) {
-                  Provider.of<AttendanceProvider>(context, listen: false)
-                      .addStudent(nameController.text);
+                  Provider.of<AttendanceProvider>(
+                    context,
+                    listen: false,
+                  ).addStudent(nameController.text);
                   Navigator.pop(context);
                 }
               },
-              child: const Text('Qo\'shish', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Qo\'shish',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -69,7 +77,7 @@ class AttendanceScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.maybePop(context),
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Ustozlar uchun davomat',
@@ -78,6 +86,18 @@ class AttendanceScreen extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.w500,
           ),
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color(0xFF0C0F1D),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.cyanAccent),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
         ),
       ),
       body: Padding(
@@ -96,9 +116,21 @@ class AttendanceScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildHeaderStat('Jami', '${attendance.students.length} ta', Colors.white),
-                      _buildHeaderStat('Darsda', '${attendance.presentCount} ta', const Color(0xFF4CD97B)),
-                      _buildHeaderStat('Yo\'q', '${attendance.absentCount} ta', const Color(0xFFE55656)),
+                      _buildHeaderStat(
+                        'Jami',
+                        '${attendance.students.length} ta',
+                        Colors.white,
+                      ),
+                      _buildHeaderStat(
+                        'Darsda',
+                        '${attendance.presentCount} ta',
+                        const Color(0xFF4CD97B),
+                      ),
+                      _buildHeaderStat(
+                        'Yo\'q',
+                        '${attendance.absentCount} ta',
+                        const Color(0xFFE55656),
+                      ),
                     ],
                   ),
                   const Padding(
@@ -110,7 +142,10 @@ class AttendanceScreen extends StatelessWidget {
                     children: [
                       const Text(
                         'Davomat ko\'rsatkichi:',
-                        style: TextStyle(color: Color(0xFFA0A7C2), fontSize: 15),
+                        style: TextStyle(
+                          color: Color(0xFFA0A7C2),
+                          fontSize: 15,
+                        ),
                       ),
                       Text(
                         '${attendance.percentage.toStringAsFixed(1)}%',
@@ -156,7 +191,10 @@ class AttendanceScreen extends StatelessWidget {
                         ),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF16192E),
                           borderRadius: BorderRadius.circular(16),
@@ -198,7 +236,10 @@ class AttendanceScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                               onTap: () => attendance.toggleAttendance(index),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: student.isPresent
                                       ? const Color(0xFF1E3A2F)

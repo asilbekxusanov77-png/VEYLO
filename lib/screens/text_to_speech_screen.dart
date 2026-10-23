@@ -11,11 +11,11 @@ class TextToSpeechScreen extends StatefulWidget {
 class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   final FlutterTts _flutterTts = FlutterTts();
   final TextEditingController _controller = TextEditingController();
-  
+
   bool _isPlaying = false;
-  double _pitch = 1.0;       // Ovoz toni (0.5 - 2.0)
-  double _speechRate = 0.5;  // Ovoz tezligi (0.0 - 1.0)
-  double _volume = 1.0;      // Ovoz balandligi (0.0 - 1.0)
+  double _pitch = 1.0; // Ovoz toni (0.5 - 2.0)
+  double _speechRate = 0.5; // Ovoz tezligi (0.0 - 1.0)
+  double _volume = 1.0; // Ovoz balandligi (0.0 - 1.0)
 
   List<dynamic> _voices = [];
   Map<String, String>? _selectedVoice;
@@ -28,7 +28,7 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
 
   Future<void> _initTts() async {
     await _flutterTts.setLanguage("en-US");
-    
+
     _flutterTts.setStartHandler(() => setState(() => _isPlaying = true));
     _flutterTts.setCompletionHandler(() => setState(() => _isPlaying = false));
     _flutterTts.setErrorHandler((msg) => setState(() => _isPlaying = false));
@@ -77,8 +77,23 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
       backgroundColor: const Color(0xFF090D16),
       appBar: AppBar(
         backgroundColor: const Color(0xFF101B35),
-        title: const Text('Text → Audio', style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Text → Audio',
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: const Color(0xFF090D16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.cyanAccent),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -102,14 +117,25 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isPlaying ? Colors.orangeAccent : Colors.cyanAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                backgroundColor: _isPlaying
+                    ? Colors.orangeAccent
+                    : Colors.cyanAccent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
               ),
               onPressed: _isPlaying ? _stop : _speak,
-              icon: Icon(_isPlaying ? Icons.stop : Icons.volume_up, color: Colors.black),
+              icon: Icon(
+                _isPlaying ? Icons.stop : Icons.volume_up,
+                color: Colors.black,
+              ),
               label: Text(
                 _isPlaying ? 'To\'xtatish' : 'O\'qish',
-                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -124,7 +150,10 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Tezlik: ${_speechRate.toStringAsFixed(1)}", style: const TextStyle(color: Colors.white)),
+                  Text(
+                    "Tezlik: ${_speechRate.toStringAsFixed(1)}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
                   Slider(
                     value: _speechRate,
                     min: 0.0,
@@ -132,7 +161,10 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
                     activeColor: Colors.cyanAccent,
                     onChanged: (val) => setState(() => _speechRate = val),
                   ),
-                  Text("Ovoz toni / Pitch: ${_pitch.toStringAsFixed(1)}", style: const TextStyle(color: Colors.white)),
+                  Text(
+                    "Ovoz toni / Pitch: ${_pitch.toStringAsFixed(1)}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
                   Slider(
                     value: _pitch,
                     min: 0.5,
@@ -140,7 +172,10 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
                     activeColor: Colors.cyanAccent,
                     onChanged: (val) => setState(() => _pitch = val),
                   ),
-                  Text("Ovoz balandligi: ${_volume.toStringAsFixed(1)}", style: const TextStyle(color: Colors.white)),
+                  Text(
+                    "Ovoz balandligi: ${_volume.toStringAsFixed(1)}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
                   Slider(
                     value: _volume,
                     min: 0.0,
@@ -150,23 +185,35 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
                   ),
                   if (_voices.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    const Text("Ovoz turi (Erkak / Ayol):", style: TextStyle(color: Colors.white)),
+                    const Text(
+                      "Ovoz turi (Erkak / Ayol):",
+                      style: TextStyle(color: Colors.white),
+                    ),
                     const SizedBox(height: 6),
                     DropdownButton<Map<String, String>>(
                       dropdownColor: const Color(0xFF101B35),
                       isExpanded: true,
                       value: _selectedVoice,
-                      hint: const Text("Ovozni tanlang", style: TextStyle(color: Colors.grey)),
-                      items: _voices.map<DropdownMenuItem<Map<String, String>>>((dynamic voice) {
-                        final Map<String, String> v = Map<String, String>.from(voice as Map);
-                        return DropdownMenuItem<Map<String, String>>(
-                          value: v,
-                          child: Text(
-                            "${v['name']} (${v['locale']})",
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                          ),
-                        );
-                      }).toList(),
+                      hint: const Text(
+                        "Ovozni tanlang",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      items: _voices.map<DropdownMenuItem<Map<String, String>>>(
+                        (dynamic voice) {
+                          final Map<String, String> v =
+                              Map<String, String>.from(voice as Map);
+                          return DropdownMenuItem<Map<String, String>>(
+                            value: v,
+                            child: Text(
+                              "${v['name']} (${v['locale']})",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ),
+                          );
+                        },
+                      ).toList(),
                       onChanged: (val) => setState(() => _selectedVoice = val),
                     ),
                   ],
